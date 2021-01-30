@@ -8,7 +8,7 @@
  */
 #define LOG(VALUE) std::cout << (VALUE) << std::endl
 
-/* alive objects */
+ /* alive objects */
 int g_objects = 0;
 
 void* operator new(size_t size)
@@ -32,7 +32,7 @@ void operator delete(void* p)
 }
 
 
- // Override base class with your custom functionality
+// Override base class with your custom functionality
 class Game : public olc::PixelGameEngine
 {
 public:
@@ -44,16 +44,21 @@ public:
 
 	bool OnUserCreate() override
 	{
-		// Called once at the start, so create things here
-		
-		CreateBodies();
+		// Called once at the start, so create things here		
 
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+		if (GetMouse(0).bPressed)
+		{
+			const auto pos = GetWindowMouse();
+			CreateChain(pos.x, pos.y);
+		}
 		
+		// Render
+	
 		Clear(olc::DARK_BLUE);
 
 		for (auto& body : m_bodies)
@@ -70,37 +75,52 @@ private:
 
 	std::vector<VertletBody*> m_bodies;
 
-	void CreateBodies()
+	void CreateChain(float _x, float _y)
 	{
-		// create some points
-		VertletPoint* p0 = new VertletPoint(100, 100, 85, 95);
-		VertletPoint* p1 = new VertletPoint(200, 100, 200, 100);
-		VertletPoint* p2 = new VertletPoint(100, 200, 100, 200);
-		VertletPoint* p3 = new VertletPoint(200, 200, 200, 200);
-		std::vector<VertletPoint*> point_vec{ p0, p1, p2, p3 };
+		// create box points
+		VertletPoint* p0 = new VertletPoint(_x + 100, _y + 100, _x + 85, _y + 95);
+		VertletPoint* p1 = new VertletPoint(_x + 200, _y + 200, _x + 200,_y + 200);
+		VertletPoint* p2 = new VertletPoint(_x + 100, _y + 200, _x + 100,_y + 200);
+		VertletPoint* p3 = new VertletPoint(_x + 200, _y + 100, _x + 200,_y + 100);
+		std::vector<VertletPoint*> box_points{ p0, p1, p2, p3 };
 
-		// Create some sticks
-		VertletStick* s0 = new VertletStick(p0, p1, Distance(p0, p1));
-		VertletStick* s1 = new VertletStick(p1, p3, Distance(p1, p3));
-		VertletStick* s2 = new VertletStick(p3, p2, Distance(p3, p2));
-		VertletStick* s3 = new VertletStick(p2, p0, Distance(p2, p0));
-		VertletStick* s4 = new VertletStick(p1, p2, Distance(p1, p2)); // support stick	
-		std::vector<VertletStick*> stick_vec{ s0, s1, s2, s3, s4 };
+		// Create box sticks
+		VertletStick* s0 = new VertletStick(p0, p2, Distance(p0, p2));
+		VertletStick* s1 = new VertletStick(p2, p1, Distance(p2, p1));
+		VertletStick* s2 = new VertletStick(p1, p3, Distance(p1, p3));
+		VertletStick* s3 = new VertletStick(p3, p0, Distance(p3, p0));
+		VertletStick* s4 = new VertletStick(p3, p2, Distance(p3, p2), true); // support stick	
+		std::vector<VertletStick*> box_sticks{ s0, s1, s2, s3, s4 };
 
-		// Create some vertlet bodies
-		VertletBody* v1 = new VertletBody(point_vec, stick_vec);
+		// Create box body
+		VertletBody* box = new VertletBody(box_points, box_sticks);
+		m_bodies.emplace_back(box);
 		
-		m_bodies.emplace_back(v1);
+		// Create chain points
+		VertletPoint* p4 = new VertletPoint(_x + 200, _y, _x + 200, _y);
+		VertletPoint* p5 = new VertletPoint(_x + 100, _y, _x + 100, _y);
+		VertletPoint* p6 = new VertletPoint(_x, _y, _x, _y, false, true);
+		std::vector<VertletPoint*> chain_points{ p4, p5, p6 };
+
+		// Create box sticks
+		VertletStick* s5 = new VertletStick(p3, p4, Distance(p3, p4));
+		VertletStick* s6 = new VertletStick(p4, p5, Distance(p4, p5));
+		VertletStick* s7 = new VertletStick(p5, p6, Distance(p5, p6));
+		std::vector<VertletStick*> chain_sticks{ s5, s6, s7 };
+
+		// Create chain
+		VertletBody* chain = new VertletBody(chain_points, chain_sticks);	
+		m_bodies.emplace_back(chain);
 	}
 
 	void DestroyBodies()
 	{
-		for (auto && body : m_bodies)
+		for (auto&& body : m_bodies)
 		{
-			delete body;			
+			delete body;
 		}
 
-		m_bodies.clear();	
+		m_bodies.clear();
 	}
 
 	void RenderBody(const VertletBody* body)
@@ -108,13 +128,19 @@ private:
 		// render points
 		for (const auto& p : body->m_points)
 		{
-			FillCircle(p->m_x, p->m_y, body->m_pointradius, olc::WHITE);
+			if (!p->m_hidden)
+			{
+				FillCircle(p->m_x, p->m_y, body->m_pointradius, olc::WHITE);
+			}
 		}
 
 		// render sticks
 		for (const auto& s : body->m_sticks)
 		{
-			DrawLine(s->m_pa->m_x, s->m_pa->m_y, s->m_pb->m_x, s->m_pb->m_y);
+			if (!s->m_hidden)
+			{
+				DrawLine(s->m_pa->m_x, s->m_pa->m_y, s->m_pb->m_x, s->m_pb->m_y);
+			}
 		}
 	}
 
