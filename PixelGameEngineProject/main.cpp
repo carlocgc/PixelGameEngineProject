@@ -17,7 +17,7 @@ void* operator new(size_t size)
 
 	++g_objects;
 
-	LOG(g_objects);
+	//LOG(g_objects);
 
 	return ptr;
 }
@@ -28,7 +28,7 @@ void operator delete(void* p)
 
 	--g_objects;
 
-	LOG(g_objects);	
+	//LOG(g_objects);	
 }
 
 
@@ -42,14 +42,6 @@ public:
 		sAppName = "Example";
 	}
 
-	virtual ~Game()
-	{
-		for (const auto& body : m_bodies)
-		{
-			delete body;
-		}
-	}
-
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
@@ -61,18 +53,6 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		m_elapsedtime += fElapsedTime;
-
-		//LOG(m_elapsedtime);
-
-		if (m_elapsedtime >= m_duration)
-		{
-			DestroyBodies();
-
-			CreateBodies();
-
-			m_elapsedtime = 0;
-		}
 		
 		Clear(olc::DARK_BLUE);
 
@@ -90,20 +70,23 @@ private:
 
 	std::vector<VertletBody*> m_bodies;
 
-	const float m_duration = 5.f;
-	
-	float m_elapsedtime = 0.f;
-
 	void CreateBodies()
 	{
 		// create some points
-		VertletPoint* p0 = new VertletPoint(100, 100, 95, 95);
+		VertletPoint* p0 = new VertletPoint(100, 100, 85, 95);
 		VertletPoint* p1 = new VertletPoint(200, 100, 200, 100);
-		std::vector<VertletPoint*> point_vec{ p0, p1 };
+		VertletPoint* p2 = new VertletPoint(100, 200, 100, 200);
+		VertletPoint* p3 = new VertletPoint(200, 200, 200, 200);
+		std::vector<VertletPoint*> point_vec{ p0, p1, p2, p3 };
 
 		// Create some sticks
-		VertletStick* stick_a = new VertletStick(p0, p1, Distance(p0, p1));
-		std::vector<VertletStick*> stick_vec{ stick_a };
+		VertletStick* s0 = new VertletStick(p0, p1, Distance(p0, p1));
+		VertletStick* s1 = new VertletStick(p1, p3, Distance(p1, p3));
+		VertletStick* s2 = new VertletStick(p3, p2, Distance(p3, p2));
+		VertletStick* s3 = new VertletStick(p2, p0, Distance(p2, p0));
+		VertletStick* s4 = new VertletStick(p1, p2, Distance(p1, p2)); // support stick
+		
+		std::vector<VertletStick*> stick_vec{ s0, s1, s2, s3, s4};
 
 		VertletBody* v1 = new VertletBody(point_vec, stick_vec);
 		m_bodies.emplace_back(v1);

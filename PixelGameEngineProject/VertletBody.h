@@ -48,7 +48,7 @@ public:
 private:
 	
 	const float m_bounce = 0.9f;
-	const float m_gravity = 0.5f;
+	const float m_gravity = 0.2f;
 	const float m_friction = 0.999f;	
 
 	void UpdatePoints(const int32_t screen_width, const int32_t screen_height);
