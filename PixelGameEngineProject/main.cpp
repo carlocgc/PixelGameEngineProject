@@ -51,19 +51,35 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+		// Determine mouse move direction
+		const olc::vi2d current_mouse_pos = GetWindowMouse();
+		const olc::vi2d mouse_direction = last_mouse_pos - current_mouse_pos;
+		olc::vi2d mouse_direction_norm{ 0, 0 };
+		
+		if (mouse_direction.x != 0 || mouse_direction.y != 0)
+		{
+			mouse_direction_norm = mouse_direction.norm();
+		}
+		 
+		last_mouse_pos = current_mouse_pos;
+
+		LOG(mouse_direction_norm.str());
+
+		// Create bodies
+		
 		if (GetMouse(0).bPressed)
 		{
 			const auto pos = GetWindowMouse();
 			CreateChain(pos.x, pos.y);
 		}
-		
+
 		// Render
-	
+
 		Clear(olc::DARK_BLUE);
 
 		for (auto& body : m_bodies)
 		{
-			body->Update(ScreenWidth(), ScreenHeight());
+			body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm.x, mouse_direction_norm.y);
 
 			RenderBody(body);
 		}
@@ -75,13 +91,15 @@ private:
 
 	std::vector<VertletBody*> m_bodies;
 
+	olc::vi2d last_mouse_pos{ 0, 0 };
+
 	void CreateChain(float _x, float _y)
 	{
 		// create box points
 		VertletPoint* p0 = new VertletPoint(_x + 100, _y + 100, _x + 85, _y + 95);
-		VertletPoint* p1 = new VertletPoint(_x + 200, _y + 200, _x + 200,_y + 200);
-		VertletPoint* p2 = new VertletPoint(_x + 100, _y + 200, _x + 100,_y + 200);
-		VertletPoint* p3 = new VertletPoint(_x + 200, _y + 100, _x + 200,_y + 100);
+		VertletPoint* p1 = new VertletPoint(_x + 200, _y + 200, _x + 200, _y + 200);
+		VertletPoint* p2 = new VertletPoint(_x + 100, _y + 200, _x + 100, _y + 200);
+		VertletPoint* p3 = new VertletPoint(_x + 200, _y + 100, _x + 200, _y + 100);
 		std::vector<VertletPoint*> box_points{ p0, p1, p2, p3 };
 
 		// Create box sticks
@@ -95,7 +113,7 @@ private:
 		// Create box body
 		VertletBody* box = new VertletBody(box_points, box_sticks);
 		m_bodies.emplace_back(box);
-		
+
 		// Create chain points
 		VertletPoint* p4 = new VertletPoint(_x + 200, _y, _x + 200, _y);
 		VertletPoint* p5 = new VertletPoint(_x + 100, _y, _x + 100, _y);
@@ -109,7 +127,7 @@ private:
 		std::vector<VertletStick*> chain_sticks{ s5, s6, s7 };
 
 		// Create chain
-		VertletBody* chain = new VertletBody(chain_points, chain_sticks);	
+		VertletBody* chain = new VertletBody(chain_points, chain_sticks);
 		m_bodies.emplace_back(chain);
 	}
 

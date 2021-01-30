@@ -13,9 +13,9 @@ VertletBody::~VertletBody()
 	}
 }
 
-void VertletBody::Update(const int32_t screen_width, const int32_t screen_height)
+void VertletBody::Update(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_direction_x, const int32_t mouse_direction_y)
 {
-	UpdatePoints(screen_width, screen_height);
+	UpdatePoints(screen_width, screen_height, mouse_direction_x, mouse_direction_y);
 
 	for (size_t i = 0; i <= m_constrain_loops; ++i)
 	{
@@ -24,7 +24,7 @@ void VertletBody::Update(const int32_t screen_width, const int32_t screen_height
 	}
 }
 
-void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_height)
+void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_x, const int32_t mouse_y)
 {
 	for (auto& p : m_points)
 	{

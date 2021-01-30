@@ -7,6 +7,7 @@ struct VertletPoint
 	float m_y;
 	float m_oldx;
 	float m_oldy;
+	
 	bool m_hidden;
 	bool m_pinned;
 
@@ -49,7 +50,7 @@ public:
 	std::vector<VertletPoint*> m_points;
 	std::vector<VertletStick*> m_sticks;
 
-	void Update(const int32_t screen_width, const int32_t screen_height);
+	void Update(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_direction_x, const int32_t mouse_direction_y);
 
 private:
 	/* velocity reduction on collision */
@@ -61,7 +62,7 @@ private:
 	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
 	const int m_constrain_loops = 3;
 
-	void UpdatePoints(const int32_t screen_width, const int32_t screen_height);
+	void UpdatePoints(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_x, const int32_t mouse_y);
 	void UpdateSticks(const int32_t screen_width, const int32_t screen_height);
 	void ConstrainPoints(const int32_t screen_width, const int32_t screen_height);
 };
