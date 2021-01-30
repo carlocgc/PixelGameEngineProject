@@ -84,11 +84,12 @@ private:
 		VertletStick* s1 = new VertletStick(p1, p3, Distance(p1, p3));
 		VertletStick* s2 = new VertletStick(p3, p2, Distance(p3, p2));
 		VertletStick* s3 = new VertletStick(p2, p0, Distance(p2, p0));
-		VertletStick* s4 = new VertletStick(p1, p2, Distance(p1, p2)); // support stick
-		
-		std::vector<VertletStick*> stick_vec{ s0, s1, s2, s3, s4};
+		VertletStick* s4 = new VertletStick(p1, p2, Distance(p1, p2)); // support stick	
+		std::vector<VertletStick*> stick_vec{ s0, s1, s2, s3, s4 };
 
+		// Create some vertlet bodies
 		VertletBody* v1 = new VertletBody(point_vec, stick_vec);
+		
 		m_bodies.emplace_back(v1);
 	}
 

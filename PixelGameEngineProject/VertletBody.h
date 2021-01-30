@@ -37,7 +37,7 @@ public:
 		m_sticks(sticks)
 	{}
 
-	~VertletBody();
+	virtual ~VertletBody();
 
 	const float m_pointradius = 5.f;
 	std::vector<VertletPoint*> m_points;
@@ -46,11 +46,16 @@ public:
 	void Update(const int32_t screen_width, const int32_t screen_height);	
 
 private:
-	
+	/* velocity reduction on collision */
 	const float m_bounce = 0.9f;
-	const float m_gravity = 0.2f;
-	const float m_friction = 0.999f;	
+	/* downwards force added to velocity each update */
+	const float m_gravity = 0.1f;
+	/* amount to reduce velocity each update */
+	const float m_friction = 0.999f;
+	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
+	const int m_constrain_loops = 3; 
 
-	void UpdatePoints(const int32_t screen_width, const int32_t screen_height);
+	void UpdatePoints(const int32_t screen_width, const int32_t screen_height);		
 	void UpdateSticks(const int32_t screen_width, const int32_t screen_height);
+	void ConstrainPoints(const int32_t screen_width, const int32_t screen_height);
 };
