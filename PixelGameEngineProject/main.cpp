@@ -65,6 +65,32 @@ private:
 			// apply velocity
 			p.x += vx * fElapsedTime;
 			p.y += vy * fElapsedTime;
+			
+			// confine x to screen bounds
+			if (p.x >= ScreenWidth())
+			{
+				p.x = ScreenWidth();
+				// invert x velocity
+				p.oldx = p.x + vx;		
+			}
+			else if (p.x  < 0)
+			{
+				p.x = 0;
+				p.oldx = p.x + vx;
+			}
+
+			// confine y to screen bounds
+			if (p.y >= ScreenHeight())
+			{
+				p.y = ScreenHeight();
+				// invert y velocity
+				p.oldy = p.y + vy;
+			}
+			else if (p.y < 0)
+			{
+				p.y = 0;
+				p.oldy = p.y + vx;
+			}
 		}
 	}
 
