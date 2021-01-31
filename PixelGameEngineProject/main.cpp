@@ -39,7 +39,7 @@ public:
 	Game()
 	{
 		// Name your application
-		sAppName = "Example";
+		sAppName = "Game";
 	}
 
 	bool OnUserCreate() override
@@ -52,15 +52,14 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		// Determine mouse move direction
-		const olc::vi2d current_mouse_pos = GetWindowMouse();
-		const olc::vf2d mouse_direction = last_mouse_pos - current_mouse_pos;		
 		
+		const olc::vf2d current_mouse_pos = GetWindowMouse();
+		const olc::vf2d mouse_direction = last_mouse_pos - current_mouse_pos;			
 		olc::vf2d mouse_direction_norm{ 0, 0 };
 		
 		if (mouse_direction.x != 0 || mouse_direction.y != 0)
 		{
-			mouse_direction_norm = mouse_direction.norm();
-			LOG(mouse_direction_norm.str());
+			mouse_direction_norm = mouse_direction.norm();			
 		}
 		 
 		last_mouse_pos = current_mouse_pos;
@@ -75,7 +74,7 @@ public:
 
 		// Render
 
-		Clear(olc::DARK_GREY);
+		Clear(olc::VERY_DARK_CYAN);
 
 		for (auto& body : m_bodies)
 		{
