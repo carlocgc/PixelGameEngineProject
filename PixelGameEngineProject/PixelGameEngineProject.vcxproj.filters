@@ -18,15 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VertletBody.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="olcPixelGameEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VertletBody.h">
+    <ClInclude Include="VertletPhysics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
