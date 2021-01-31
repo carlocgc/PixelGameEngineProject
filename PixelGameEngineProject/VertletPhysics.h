@@ -4,28 +4,45 @@
 #include "olcPixelGameEngine.h"
 namespace VertletPhysics
 {
+	/* Velocity reduction on collision */
+	const float g_bounce = 0.9f;
+	/* Downwards force added to velocity each update */
+	const float g_gravity = 0.1f;
+	/* Amount to reduce velocity each update */
+	const float g_friction = 0.999f;
+	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
+	const int g_constrain_loops = 3;
+
+	/**
+	 * \brief Point that has physics forces applied to it
+	 */
 	struct VertletPoint
 	{
 		float m_x;
 		float m_y;
 		float m_oldx;
 		float m_oldy;
+		float m_radius;
 
-		bool m_hidden;
+		bool m_should_draw;
 		bool m_pinned;
 		bool m_touched;
 
-		VertletPoint(const float _x, const float _y, const float _oldx, const float _oldy, const bool hidden = false, const bool pinned = false) :
+		VertletPoint(const float _x, const float _y, const float _oldx, const float _oldy, const bool pinned = false, const float radius = 5.f, const bool should_draw = false) :
 			m_x(_x),
 			m_y(_y),
 			m_oldx(_oldx),
 			m_oldy(_oldy),
-			m_hidden(hidden),
+			m_radius(radius),
+			m_should_draw(should_draw),
 			m_pinned(pinned),
 			m_touched(false)
 		{}
 	};
 
+	/**
+	 * \brief Two points and a length, used to constrain two points
+	 */
 	struct VertletStick
 	{
 		VertletPoint* m_pa;
@@ -41,6 +58,9 @@ namespace VertletPhysics
 		{}
 	};
 
+	/**
+	 * \brief Structure comprised of some arrangement of VertletPoints & VertletSticks, update and render functions
+	 */
 	class VertletBody
 	{
 	public:
@@ -66,31 +86,41 @@ namespace VertletPhysics
 		}
 
 		const bool draw_points;
-		const float m_pointradius = 5.f;
 
 		std::vector<VertletPoint*> m_points;
 		std::vector<VertletStick*> m_sticks;
 
-		void Update(const int32_t screen_width, const int32_t screen_height, olc::vf2d mouse_dir, olc::vf2d mouse_pos)
+		/**
+		 * \brief Updates the points and sticks
+		 * \param screen_width Width of the game screen
+		 * \param screen_height Height of the game screen
+		 * \param mouse_dir Direction the mouse is moving since last frame
+		 * \param mouse_pos Current position of the mouse
+		 */
+		void Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir = {0, 0}, const olc::vf2d mouse_pos = {0, 0})
 		{
 			UpdatePoints(mouse_dir, mouse_pos);
 
-			for (size_t i = 0; i <= m_constrain_loops; ++i)
+			for (size_t i = 0; i <= g_constrain_loops; ++i)
 			{
 				UpdateSticks();
 				ConstrainPoints(screen_width, screen_height);
 			}
 		}
 
+		/**
+		 * \brief Draws the physics bodies to the screen
+		 * \param renderer PixelGameEngine game pointer
+		 */
 		void Render(olc::PixelGameEngine* renderer)
 		{
 			// render points
 			for (const auto& p : m_points)
 			{
-				if (!p->m_hidden && draw_points)
+				if (p->m_should_draw && draw_points)
 				{
 					const auto colour = p->m_touched ? olc::RED : olc::WHITE;
-					const auto radius = p->m_touched ? m_pointradius * 3 : m_pointradius;
+					const auto radius = p->m_touched ? p->m_radius * 3 : p->m_radius;
 					renderer->FillCircle(p->m_x, p->m_y, radius, colour);
 				}
 			}
@@ -106,16 +136,13 @@ namespace VertletPhysics
 		}
 
 	private:
-		/* velocity reduction on collision */
-		const float m_bounce = 0.9f;
-		/* downwards force added to velocity each update */
-		const float m_gravity = 0.1f;
-		/* amount to reduce velocity each update */
-		const float m_friction = 0.999f;
-		/* number of times to run the constrain logic each update, prevents wobbling of bodies */
-		const int m_constrain_loops = 3;
 
-		void UpdatePoints(const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
+		/**
+		 * \brief Update the points velocity
+		 * \param mouse_dir Direction the mouse is moving since last frame
+		 * \param mouse_pos Current position of the mouse
+		 */
+		void UpdatePoints(const olc::vf2d mouse_dir = { 0, 0 }, const olc::vf2d mouse_pos = {0, 0})
 		{
 			for (auto& p : m_points)
 			{
@@ -128,7 +155,7 @@ namespace VertletPhysics
 					const float dx = mouse_pos.x - p->m_x;
 					const float dy = mouse_pos.y - p->m_y;
 
-					const bool within = abs(dx) <= m_pointradius * 2 && abs(dy) <= m_pointradius * 2; // TODO radius detect tolerance!
+					const bool within = abs(dx) <= p->m_radius * 2 && abs(dy) <= p->m_radius * 2; // TODO radius detect tolerance!
 
 					float mouse_mod_x = 0;
 					float mouse_mod_y = 0;
@@ -143,8 +170,8 @@ namespace VertletPhysics
 					}
 
 					// calc velocity, apply mouse effect
-					const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * m_friction;
-					const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * m_friction;
+					const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * g_friction;
+					const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * g_friction;
 
 					// update old pos for next frame
 					p->m_oldx = p->m_x;
@@ -154,11 +181,14 @@ namespace VertletPhysics
 					p->m_x += vx;
 					p->m_y += vy;
 					// apply gravity
-					p->m_y += m_gravity;
+					p->m_y += g_gravity;
 				}
 			}
 		}
 
+		/**
+		 * \brief Adjusts the points to be stick length apart
+		 */
 		void UpdateSticks()
 		{
 			for (auto& s : m_sticks)
@@ -186,45 +216,56 @@ namespace VertletPhysics
 			}
 		}
 
+		/**
+		 * \brief Handles point screen bounds check and applies bounce
+		 * \param screen_width
+		 * \param screen_height
+		 */
 		void ConstrainPoints(const int32_t screen_width, const int32_t screen_height)
 		{
 			for (auto& p : m_points)
 			{
 				if (!p->m_pinned)
 				{
-					const auto vx = (p->m_x - p->m_oldx) * m_friction;
-					const auto vy = (p->m_y - p->m_oldy) * m_friction;
+					const auto vx = (p->m_x - p->m_oldx) * g_friction;
+					const auto vy = (p->m_y - p->m_oldy) * g_friction;
 
 					// confine x to screen bounds
-					if (p->m_x >= screen_width - m_pointradius)
+					if (p->m_x >= screen_width - p->m_radius)
 					{
-						p->m_x = screen_width - m_pointradius;
+						p->m_x = screen_width - p->m_radius;
 						// invert x velocity, apply bounce speed reduction
-						p->m_oldx = p->m_x + vx * m_bounce;
+						p->m_oldx = p->m_x + vx * g_bounce;
 					}
-					else if (p->m_x < 0 + m_pointradius)
+					else if (p->m_x < 0 + p->m_radius)
 					{
-						p->m_x = 0 + m_pointradius;
-						p->m_oldx = p->m_x + vx * m_bounce;
+						p->m_x = 0 + p->m_radius;
+						p->m_oldx = p->m_x + vx * g_bounce;
 					}
 
 					// confine y to screen bounds
-					if (p->m_y >= screen_height - m_pointradius)
+					if (p->m_y >= screen_height - p->m_radius)
 					{
-						p->m_y = screen_height - m_pointradius;
+						p->m_y = screen_height - p->m_radius;
 						// invert y velocity, apply bounce speed reduction
-						p->m_oldy = p->m_y + vy * m_bounce;
+						p->m_oldy = p->m_y + vy * g_bounce;
 					}
-					else if (p->m_y < 0 + m_pointradius)
+					else if (p->m_y < 0 + p->m_radius)
 					{
-						p->m_y = 0 + m_pointradius;
-						p->m_oldy = p->m_y + vy * m_bounce;
+						p->m_y = 0 + p->m_radius;
+						p->m_oldy = p->m_y + vy * g_bounce;
 					}
 				}
 			}
 		}
 	};
 
+	/**
+	 * \brief Get the distance between two points
+	 * \param pa First point
+	 * \param pb Second point
+	 * \return Distance between
+	 */
 	static float Distance(const VertletPoint* pa, const VertletPoint* pb)
 	{
 		const float dx = pb->m_x - pa->m_x;
@@ -235,6 +276,17 @@ namespace VertletPhysics
 		return distance;
 	}
 
+	/**
+	 * \brief Creates a net of points and sticks
+	 * \param out_bodies Vec of vertlet body pointers
+	 * \param start_x Top left x position of the net
+	 * \param start_y Top left y position of the net
+	 * \param len_x Number of points in the x axis
+	 * \param len_y Number of points in th y axis
+	 * \param point_dist Distance between points
+	 * \param draw_points Whether points are drawn, drawn if true
+	 * \return True if successfully created
+	 */
 	static bool CreateNet(std::vector<VertletBody*>& out_bodies, const float start_x, const float start_y, const int32_t len_x, const int32_t len_y, const float point_dist, const bool draw_points = false)
 	{
 		std::vector<VertletPoint*> all_points;
@@ -249,7 +301,7 @@ namespace VertletPhysics
 				const float pos_x = start_x + point_dist * x;
 				const float pos_y = start_y + point_dist * y;
 
-				auto* point = new VertletPoint(pos_x, pos_y, pos_x, pos_y, false, pinned);
+				auto* point = new VertletPoint(pos_x, pos_y, pos_x, pos_y, pinned, 5.f, draw_points);
 
 				all_points.emplace_back(point);
 			}
@@ -269,7 +321,7 @@ namespace VertletPhysics
 					const int32_t start_point = x + len_x * y;
 					const int32_t end_point = (x + 1) + len_x * y;
 
-					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist, false));
+					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist));
 				}
 
 				if (btm_needed)
@@ -278,7 +330,7 @@ namespace VertletPhysics
 					const int32_t start_point = x + len_x * y;
 					const int32_t end_point = x + len_x * (y + 1);
 
-					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist, false));
+					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist));
 				}
 			}
 		}
@@ -290,8 +342,15 @@ namespace VertletPhysics
 		return true;
 	}
 
+	/**
+	 * \brief Create a box and chain physics body
+	 * \param x Pin x position
+	 * \param y Pin y position
+	 * \param out_bodies Vec of physics body pointers
+	 * \return True if successfully created
+	 */
 	static bool CreateChain(const float x, const float y, std::vector<VertletBody*>& out_bodies)
-	{				
+	{
 		// create box points
 		auto* const p0 = new VertletPoint(x + 100, y + 100, x + 85, y + 95);
 		auto* const p1 = new VertletPoint(x + 200, y + 200, x + 200, y + 200);
@@ -314,7 +373,7 @@ namespace VertletPhysics
 		// Create chain points
 		auto* const p4 = new VertletPoint(x + 200, y, x + 200, y);
 		auto* const p5 = new VertletPoint(x + 100, y, x + 100, y);
-		auto* const p6 = new VertletPoint(x, y, x, y, false, true);
+		auto* const p6 = new VertletPoint(x, y, x, y, true);
 		std::vector<VertletPoint*> chain_points{ p4, p5, p6 };
 
 		// Create box sticks
