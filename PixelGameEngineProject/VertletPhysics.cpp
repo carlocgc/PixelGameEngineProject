@@ -10,52 +10,65 @@ namespace VertletPhysics
 		m_radius(radius),
 		m_should_draw(should_draw),
 		m_pinned(pinned),
-		m_touched(false)
+		m_touched(false),
+		m_cut(false),
+		m_owning_body(nullptr)
 	{}
-	
+
+	void VertletPoint::Cut()
+	{
+		if (m_cut)
+		{
+			return;
+		}
+
+		m_cut = true;
+
+		for (auto& stick : m_attached_sticks)
+		{
+			auto* const new_point = new VertletPoint(m_x, m_y, m_oldx, m_oldy, m_pinned, m_radius, m_should_draw);			
+
+			stick->ReplacePoint(this, new_point);
+
+			m_owning_body->AddPoint(new_point);
+		}
+
+		// TODO remove this
+		m_pinned = true;
+		m_should_draw = false;
+	}
+
 	VertletStick::VertletStick(VertletPoint* pa, VertletPoint* pb, const float length, const bool hidden) :
 		m_pa(pa),
 		m_pb(pb),
 		m_length(length),
-		m_hidden(hidden),
-		m_owning_body(nullptr)
+		m_hidden(hidden)
 	{
 		m_pa->m_attached_sticks.emplace_back(this);
 		m_pb->m_attached_sticks.emplace_back(this);
 	}
 
-	bool VertletStick::ReplacePoint(const VertletPoint* old_point)
+	bool VertletStick::ReplacePoint(VertletPoint* old_point, VertletPoint* new_point)
 	{
-		// Create new point
-		auto* const new_point = new VertletPoint(old_point->m_x, old_point->m_y, old_point->m_oldx, old_point->m_y, old_point->m_pinned, old_point->m_radius, old_point->m_should_draw);
-
 		// Set attached stick to this
 		new_point->m_attached_sticks.emplace_back(this);
-
-		VertletPoint* retired_point = nullptr;
 
 		// set replaced point to new point
 		if (m_pa == old_point)
 		{
-			retired_point = m_pa;
 			m_pa = new_point;
 		}
 		else if (m_pb == old_point)
 		{
-			retired_point = m_pa;
-			m_pa = new_point;
+			m_pb = new_point;
 		}
 		else
 		{
+			// Could not replace unknown point
 			return false;
 		}
 
-		//m_owning_body->ReplacePoint();
-
-		// TODO Finish
-
 		return true;
-
 	}
 
 	VertletBody::VertletBody(std::vector<VertletPoint*>& points, std::vector<VertletStick*>& sticks, bool _draw_points) :
@@ -63,9 +76,9 @@ namespace VertletPhysics
 		m_points(points),
 		m_sticks(sticks)
 	{
-		for (auto& stick : sticks)
+		for (auto& point : m_points)
 		{
-			stick->m_owning_body = this;
+			point->m_owning_body = this;
 		}
 	}
 
@@ -102,28 +115,21 @@ namespace VertletPhysics
 			}
 		}
 	}
-
-	bool VertletBody::ReplacePoint(VertletPoint* old_point, VertletPoint* new_point)
-	{		
-		auto i = std::find(m_points.begin(), m_points.end(), old_point);	
+	
+	void VertletBody::AddPoint(VertletPoint* new_point)
+	{
+		new_point->m_owning_body = this;
 		
-		if (i != m_points.end())
-		{
-			// delete and remove old point
-			m_points.erase(i);
-
-			delete old_point;
-		}
-
-		m_points.emplace_back(new_point);
-
-		return true;
+		// add new point
+		m_points.push_back(new_point);
 	}
 
 	void VertletBody::UpdatePoints(const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
 	{
-		for (auto& p : m_points)
+		for (int i = m_points.size() - 1; i >= 0; i--)
 		{
+			VertletPoint* p = m_points[i];
+			
 			if (!p->m_pinned)
 			{
 				// reset mouse touched flag
@@ -145,8 +151,14 @@ namespace VertletPhysics
 					mouse_mod_y = mouse_dir.y * 5.f;
 
 					p->m_touched = true;
-				}
 
+					p->Cut(); // TODO TESTING
+
+					m_points.erase(m_points.begin() + i);
+					
+					continue;
+				}
+				
 				// calc velocity, apply mouse effect
 				const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * g_friction;
 				const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * g_friction;

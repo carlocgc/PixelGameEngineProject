@@ -14,7 +14,7 @@ namespace VertletPhysics
 	/* Amount to reduce velocity each update */
 	const float g_friction = 0.999f;
 	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
-	const int g_constrain_loops = 3;
+	const int g_constrain_loops = 0;
 
 	/**
 	 * \brief Point that has physics forces applied to it
@@ -30,10 +30,15 @@ namespace VertletPhysics
 		bool m_should_draw;
 		bool m_pinned;		
 		bool m_touched;
+		bool m_cut;
+
+		VertletBody* m_owning_body;
 
 		std::vector<VertletStick*> m_attached_sticks;
 
 		VertletPoint(const float _x, const float _y, const float _oldx, const float _oldy, const bool pinned = false, const float radius = 5.f, const bool should_draw = false);
+
+		void Cut();
 	};
 
 	/**
@@ -43,13 +48,13 @@ namespace VertletPhysics
 	{
 		VertletPoint* m_pa;
 		VertletPoint* m_pb;
-		VertletBody* m_owning_body;
+		
 		float m_length;
 		bool m_hidden;
 
 		VertletStick(VertletPoint* pa, VertletPoint* pb, const float length, const bool hidden = false);
 
-		bool ReplacePoint(const VertletPoint* old_point);
+		bool ReplacePoint(VertletPoint* old_point, VertletPoint*  new_point);
 	};
 
 	/**
@@ -94,8 +99,8 @@ namespace VertletPhysics
 		 * \param renderer PixelGameEngine game pointer
 		 */
 		void Render(olc::PixelGameEngine* renderer);
-
-		bool ReplacePoint(VertletPoint* old_point, VertletPoint* new_point);
+				
+		void AddPoint(VertletPoint* new_point);		
 
 	private:
 
