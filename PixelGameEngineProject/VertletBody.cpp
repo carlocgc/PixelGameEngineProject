@@ -13,9 +13,9 @@ VertletBody::~VertletBody()
 	}
 }
 
-void VertletBody::Update(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_direction_x, const int32_t mouse_direction_y)
+void VertletBody::Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
 {
-	UpdatePoints(screen_width, screen_height, mouse_direction_x, mouse_direction_y);
+	UpdatePoints(screen_width, screen_height, mouse_dir, mouse_pos);
 
 	for (size_t i = 0; i <= m_constrain_loops; ++i)
 	{
@@ -24,15 +24,34 @@ void VertletBody::Update(const int32_t screen_width, const int32_t screen_height
 	}
 }
 
-void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_x, const int32_t mouse_y)
+void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
 {
 	for (auto& p : m_points)
-	{
+	{	
 		if (!p->m_pinned)
 		{
+			p->m_touched = false;
+			
+			// check if mouse is within the point
+			float dx = mouse_pos.x - p->m_x;
+			float dy = mouse_pos.y - p->m_y;
+
+			bool within = abs(dx) <= m_pointradius * 2 && abs(dy) <= m_pointradius * 2; // TODO radius detect tolerance!
+
+			float mouse_mod_x = 0;
+			float mouse_mod_y = 0;
+
+			if (within)
+			{
+				mouse_mod_x = mouse_dir.x * 5.f; // TODO mouse move amount!
+				mouse_mod_y = mouse_dir.y * 5.f;
+
+				p->m_touched = true;
+			}
+				
 			// calc velocity
-			const auto vx = (p->m_x - p->m_oldx) * m_friction;
-			const auto vy = (p->m_y - p->m_oldy) * m_friction;
+			const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * m_friction;
+			const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * m_friction;
 
 			// update old pos for next frame
 			p->m_oldx = p->m_x;

@@ -1,15 +1,18 @@
 #pragma once
 #include <vector>
 
+#include "olcPixelGameEngine.h"
+
 struct VertletPoint
 {
 	float m_x;
 	float m_y;
 	float m_oldx;
 	float m_oldy;
-	
+
 	bool m_hidden;
 	bool m_pinned;
+	bool m_touched;
 
 	VertletPoint(const float _x, const float _y, const float _oldx, const float _oldy, const bool hidden = false, const bool pinned = false) :
 		m_x(_x),
@@ -17,7 +20,8 @@ struct VertletPoint
 		m_oldx(_oldx),
 		m_oldy(_oldy),
 		m_hidden(hidden),
-		m_pinned(pinned)
+		m_pinned(pinned),
+		m_touched(false)
 	{}
 };
 
@@ -50,7 +54,7 @@ public:
 	std::vector<VertletPoint*> m_points;
 	std::vector<VertletStick*> m_sticks;
 
-	void Update(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_direction_x, const int32_t mouse_direction_y);
+	void Update(const int32_t screen_width, const int32_t screen_height, olc::vf2d mouse_dir, olc::vf2d mouse_pos);
 
 private:
 	/* velocity reduction on collision */
@@ -62,7 +66,7 @@ private:
 	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
 	const int m_constrain_loops = 3;
 
-	void UpdatePoints(const int32_t screen_width, const int32_t screen_height, const int32_t mouse_x, const int32_t mouse_y);
+	void UpdatePoints(const int32_t screen_width, const int32_t screen_height, olc::vf2d mouse_dir, olc::vf2d mouse_pos);
 	void UpdateSticks(const int32_t screen_width, const int32_t screen_height);
 	void ConstrainPoints(const int32_t screen_width, const int32_t screen_height);
 };

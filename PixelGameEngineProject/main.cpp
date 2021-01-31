@@ -53,17 +53,17 @@ public:
 	{
 		// Determine mouse move direction
 		const olc::vi2d current_mouse_pos = GetWindowMouse();
-		const olc::vi2d mouse_direction = last_mouse_pos - current_mouse_pos;
-		olc::vi2d mouse_direction_norm{ 0, 0 };
+		const olc::vf2d mouse_direction = last_mouse_pos - current_mouse_pos;		
+		
+		olc::vf2d mouse_direction_norm{ 0, 0 };
 		
 		if (mouse_direction.x != 0 || mouse_direction.y != 0)
 		{
 			mouse_direction_norm = mouse_direction.norm();
+			LOG(mouse_direction_norm.str());
 		}
 		 
 		last_mouse_pos = current_mouse_pos;
-
-		LOG(mouse_direction_norm.str());
 
 		// Create bodies
 		
@@ -75,11 +75,11 @@ public:
 
 		// Render
 
-		Clear(olc::DARK_BLUE);
+		Clear(olc::DARK_GREY);
 
 		for (auto& body : m_bodies)
 		{
-			body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm.x, mouse_direction_norm.y);
+			body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm, current_mouse_pos);
 
 			RenderBody(body);
 		}
@@ -148,7 +148,9 @@ private:
 		{
 			if (!p->m_hidden)
 			{
-				FillCircle(p->m_x, p->m_y, body->m_pointradius, olc::WHITE);
+				const auto colour = p->m_touched ? olc::RED : olc::WHITE;
+				const auto radius = p->m_touched ? body->m_pointradius * 3 : body->m_pointradius;
+				FillCircle(p->m_x, p->m_y, radius, colour);
 			}
 		}
 
