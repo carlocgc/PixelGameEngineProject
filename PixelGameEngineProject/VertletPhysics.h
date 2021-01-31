@@ -14,7 +14,7 @@ namespace VertletPhysics
 	/* Amount to reduce velocity each update */
 	const float g_friction = 0.999f;
 	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
-	const int g_constrain_loops = 0;
+	const int g_constrain_loops = 2;
 
 	/**
 	 * \brief Point that has physics forces applied to it

@@ -33,9 +33,7 @@ namespace VertletPhysics
 			m_owning_body->AddPoint(new_point);
 		}
 
-		// TODO remove this
-		m_pinned = true;
-		m_should_draw = false;
+		delete this;
 	}
 
 	VertletStick::VertletStick(VertletPoint* pa, VertletPoint* pb, const float length, const bool hidden) :
@@ -152,7 +150,9 @@ namespace VertletPhysics
 
 					p->m_touched = true;
 
-					p->Cut(); // TODO TESTING
+					// TODO if right mouse held
+					
+					p->Cut();
 
 					m_points.erase(m_points.begin() + i);
 					
