@@ -30,6 +30,7 @@ void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_
 	{	
 		if (!p->m_pinned)
 		{
+			// reset mouse touched flag
 			p->m_touched = false;
 			
 			// check if mouse is within the point
@@ -41,15 +42,16 @@ void VertletBody::UpdatePoints(const int32_t screen_width, const int32_t screen_
 			float mouse_mod_x = 0;
 			float mouse_mod_y = 0;
 
+			// calculate mouse effect to apply to the point vel
 			if (within)
 			{
-				mouse_mod_x = mouse_dir.x * 5.f; // TODO mouse move amount!
+				mouse_mod_x = mouse_dir.x * 5.f; // TODO mouse move amount! maybe have point just follow mouse while inside its radius?
 				mouse_mod_y = mouse_dir.y * 5.f;
 
 				p->m_touched = true;
 			}
 				
-			// calc velocity
+			// calc velocity, apply mouse effect
 			const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * m_friction;
 			const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * m_friction;
 

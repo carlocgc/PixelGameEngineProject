@@ -44,7 +44,9 @@ public:
 
 	bool OnUserCreate() override
 	{
-		// Called once at the start, so create things here		
+		// Called once at the start, so create things here
+
+		CreateNet(10, 10, 50, 25, 25);
 
 		return true;
 	}
@@ -66,11 +68,11 @@ public:
 
 		// Create bodies
 		
-		if (GetMouse(0).bPressed)
-		{
-			const auto pos = GetWindowMouse();
-			CreateChain(pos.x, pos.y);
-		}
+		//if (GetMouse(0).bPressed)
+		//{
+		//	const auto pos = GetWindowMouse();
+		//	CreateChain(pos.x, pos.y);
+		//}		
 
 		// Render
 
@@ -91,6 +93,59 @@ private:
 	std::vector<VertletBody*> m_bodies;
 
 	olc::vi2d last_mouse_pos{ 0, 0 };
+
+	void CreateNet(const float start_x, const float start_y, const int32_t len_x, const int32_t len_y, const float point_dist)
+	{	
+		std::vector<VertletPoint*> all_points;
+		std::vector<VertletStick*> all_sticks;
+
+		// create points
+		for (int32_t y = 0; y < len_y ; y++)
+		{
+			for (int32_t x = 0; x < len_x; x++)
+			{
+				const bool pinned = y == 0;
+				const float pos_x = start_x + point_dist * x;
+				const float pos_y = start_y + point_dist * y;
+
+				VertletPoint* point = new VertletPoint(pos_x, pos_y, pos_x, pos_y, false, pinned);
+				
+				all_points.emplace_back(point);		
+			}
+		}
+
+		// create sticks	
+		for (int32_t y = 0; y < len_y; y++)
+		{
+			for (int32_t x = 0; x < len_x; x++)
+			{
+				const bool right_needed = x != len_x - 1;
+				const bool btm_needed = y != len_y - 1;				
+				
+				if (right_needed)
+				{
+					// 1d - 2d index conversion
+					const int32_t start_point = x + len_x * y;
+					const int32_t end_point = (x + 1) + len_x * y;
+					
+					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist, false));
+				}
+
+				if (btm_needed)
+				{
+					// 1d - 2d index conversion
+					const int32_t start_point = x + len_x * y;
+					const int32_t end_point = x + len_x * (y + 1);
+					
+					all_sticks.emplace_back(new VertletStick(all_points[start_point], all_points[end_point], point_dist, false));
+				}			
+			}
+		}
+
+		// create a body
+		VertletBody* body = new VertletBody(all_points, all_sticks);
+		m_bodies.emplace_back(body);
+	}
 
 	void CreateChain(float _x, float _y)
 	{
