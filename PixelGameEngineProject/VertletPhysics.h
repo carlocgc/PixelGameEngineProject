@@ -82,6 +82,29 @@ namespace VertletPhysics
 			}
 		}
 
+		void Render(olc::PixelGameEngine* renderer)
+		{
+			// render points
+			for (const auto& p : m_points)
+			{
+				if (!p->m_hidden && draw_points)
+				{
+					const auto colour = p->m_touched ? olc::RED : olc::WHITE;
+					const auto radius = p->m_touched ? m_pointradius * 3 : m_pointradius;
+					renderer->FillCircle(p->m_x, p->m_y, radius, colour);
+				}
+			}
+
+			// render sticks
+			for (const auto& s : m_sticks)
+			{
+				if (!s->m_hidden)
+				{
+					renderer->DrawLine(s->m_pa->m_x, s->m_pa->m_y, s->m_pb->m_x, s->m_pb->m_y);
+				}
+			}
+		}
+
 	private:
 		/* velocity reduction on collision */
 		const float m_bounce = 0.9f;
