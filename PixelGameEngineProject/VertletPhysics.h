@@ -28,8 +28,7 @@ namespace VertletPhysics
 		float m_radius;
 
 		bool m_should_draw;
-		bool m_pinned;
-		bool m_detached;
+		bool m_pinned;		
 		bool m_touched;
 
 		std::vector<VertletStick*> m_attached_sticks;

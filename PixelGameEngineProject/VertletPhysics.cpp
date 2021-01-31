@@ -10,8 +10,7 @@ namespace VertletPhysics
 		m_radius(radius),
 		m_should_draw(should_draw),
 		m_pinned(pinned),
-		m_touched(false),
-		m_detached(false)
+		m_touched(false)
 	{}
 	
 	VertletStick::VertletStick(VertletPoint* pa, VertletPoint* pb, const float length, const bool hidden) :
@@ -105,25 +104,20 @@ namespace VertletPhysics
 	}
 
 	bool VertletBody::ReplacePoint(VertletPoint* old_point, VertletPoint* new_point)
-	{
-		auto i = std::find(m_points.begin(), m_points.end(), old_point);
-
+	{		
+		auto i = std::find(m_points.begin(), m_points.end(), old_point);	
+		
 		if (i != m_points.end())
 		{
 			// delete and remove old point
-
 			m_points.erase(i);
 
 			delete old_point;
-
-			// add new point
-
-			m_points.emplace_back(new_point);
-
-			return true;
 		}
 
-		return false;
+		m_points.emplace_back(new_point);
+
+		return true;
 	}
 
 	void VertletBody::UpdatePoints(const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
@@ -151,9 +145,6 @@ namespace VertletPhysics
 					mouse_mod_y = mouse_dir.y * 5.f;
 
 					p->m_touched = true;
-
-					// TODO REMOVE DEBUG CODE
-					p->m_detached = true;
 				}
 
 				// calc velocity, apply mouse effect
@@ -186,13 +177,13 @@ namespace VertletPhysics
 			const auto offset_y = dy * percent;
 
 			// update points positions to be stick length apart
-			if (!s->m_pa->m_pinned && !s->m_pa->m_detached)
+			if (!s->m_pa->m_pinned)
 			{
 				s->m_pa->m_x -= offset_x;
 				s->m_pa->m_y -= offset_y;
 			}
 
-			if (!s->m_pb->m_pinned && !s->m_pb->m_detached)
+			if (!s->m_pb->m_pinned)
 			{
 				s->m_pb->m_x += offset_x;
 				s->m_pb->m_y += offset_y;
