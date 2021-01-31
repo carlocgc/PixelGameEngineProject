@@ -1,35 +1,7 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+//#include "Utility.h"
 #include "VertletPhysics.h"
-
-/**
- * \brief Print with cout
- * \param value Value to print
- */
-#define LOG(VALUE) std::cout << (VALUE) << std::endl
-
- /* alive objects */
-int g_objects = 0;
-
-void* operator new(size_t size)
-{
-	void* ptr = malloc(size);
-
-	++g_objects;
-
-	//LOG(g_objects);
-
-	return ptr;
-}
-
-void operator delete(void* p)
-{
-	free(p);
-
-	--g_objects;
-
-	//LOG(g_objects);	
-}
 
 using namespace VertletPhysics;
 
@@ -45,11 +17,8 @@ public:
 
 	bool OnUserCreate() override
 	{
-		// Called once at the start, so create things here
-
-		//CreateNet(m_bodies, 75, 10, 10, 25, 25, true);
-		CreateNet(m_bodies, 75, 10, 70, 20, 25);
-		
+		// Called once at the start, so create things here		
+			
 		return true;
 	}
 
@@ -65,23 +34,29 @@ public:
 			mouse_direction_norm = mouse_direction.norm();
 		}
 
+		// store last pos for next update
 		last_mouse_pos = current_mouse_pos;
 
-		// Create bodies
+		// check should cut
+		const bool should_cut = GetMouse(0).bHeld;
 
-		if (GetMouse(0).bPressed)
+		if (GetKey(olc::Q).bPressed)
 		{
-			const auto pos = GetMousePos();
-			CreateChain(pos.x, pos.y, m_bodies);
+			DestroyBodies();
 		}
-
+		else if (GetKey(olc::R).bPressed)
+		{
+			int x = rand() % 1000;
+			
+			CreateNet(m_bodies, x, 10, 80, 80, 4);
+		}
+		
 		// Render
-
 		Clear(olc::VERY_DARK_CYAN);
 
 		for (auto& body : m_bodies)
 		{
-			body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm, current_mouse_pos);
+			body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm, current_mouse_pos, should_cut);
 
 			body->Render(this);
 		}
@@ -109,7 +84,7 @@ private:
 int main()
 {
 	Game demo;
-	if (demo.Construct(1920, 1080, 1, 1, false))
+	if (demo.Construct(1280, 720, 1, 1, false))
 		demo.Start();
 	return 0;
 }

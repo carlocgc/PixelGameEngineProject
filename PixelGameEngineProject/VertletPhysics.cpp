@@ -26,7 +26,7 @@ namespace VertletPhysics
 
 		for (auto& stick : m_attached_sticks)
 		{
-			auto* const new_point = new VertletPoint(m_x, m_y, m_oldx, m_oldy, m_pinned, m_radius, m_should_draw);			
+			auto* const new_point = new VertletPoint(m_x, m_y, m_oldx, m_oldy, m_pinned, m_radius, m_should_draw);
 
 			stick->ReplacePoint(this, new_point);
 
@@ -80,9 +80,9 @@ namespace VertletPhysics
 		}
 	}
 
-	void VertletBody::Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
+	void VertletBody::Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir, const olc::vf2d mouse_pos, const bool cut_pressed)
 	{
-		UpdatePoints(mouse_dir, mouse_pos);
+		UpdatePoints(mouse_dir, mouse_pos, cut_pressed);
 
 		for (size_t i = 0; i <= g_constrain_loops; ++i)
 		{
@@ -113,21 +113,21 @@ namespace VertletPhysics
 			}
 		}
 	}
-	
+
 	void VertletBody::AddPoint(VertletPoint* new_point)
 	{
 		new_point->m_owning_body = this;
-		
+
 		// add new point
 		m_points.push_back(new_point);
 	}
 
-	void VertletBody::UpdatePoints(const olc::vf2d mouse_dir, const olc::vf2d mouse_pos)
+	void VertletBody::UpdatePoints(const olc::vf2d mouse_dir, const olc::vf2d mouse_pos, const bool cut)
 	{
 		for (int i = m_points.size() - 1; i >= 0; i--)
 		{
 			VertletPoint* p = m_points[i];
-			
+
 			if (!p->m_pinned)
 			{
 				// reset mouse touched flag
@@ -150,15 +150,16 @@ namespace VertletPhysics
 
 					p->m_touched = true;
 
-					// TODO if right mouse held
-					
-					p->Cut();
+					if (cut)
+					{
+						p->Cut();
 
-					m_points.erase(m_points.begin() + i);
-					
-					continue;
+						m_points.erase(m_points.begin() + i);
+
+						continue;
+					}
 				}
-				
+
 				// calc velocity, apply mouse effect
 				const auto vx = (p->m_x - p->m_oldx - mouse_mod_x) * g_friction;
 				const auto vy = (p->m_y - p->m_oldy - mouse_mod_y) * g_friction;

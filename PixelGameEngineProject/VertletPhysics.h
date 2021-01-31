@@ -14,7 +14,7 @@ namespace VertletPhysics
 	/* Amount to reduce velocity each update */
 	const float g_friction = 0.999f;
 	/* number of times to run the constrain logic each update, prevents wobbling of bodies */
-	const int g_constrain_loops = 2;
+	const int g_constrain_loops = 3;
 
 	/**
 	 * \brief Point that has physics forces applied to it
@@ -92,7 +92,7 @@ namespace VertletPhysics
 		 * \param mouse_dir Direction the mouse is moving since last frame
 		 * \param mouse_pos Current position of the mouse
 		 */
-		void Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir = { 0, 0 }, const olc::vf2d mouse_pos = { 0, 0 });
+		void Update(const int32_t screen_width, const int32_t screen_height, const olc::vf2d mouse_dir = { 0, 0 }, const olc::vf2d mouse_pos = { 0, 0 }, const bool cut_pressed = false);
 
 		/**
 		 * \brief Draws the physics bodies to the screen
@@ -109,7 +109,7 @@ namespace VertletPhysics
 		 * \param mouse_dir Direction the mouse is moving since last frame
 		 * \param mouse_pos Current position of the mouse
 		 */
-		void UpdatePoints(const olc::vf2d mouse_dir = { 0, 0 }, const olc::vf2d mouse_pos = { 0, 0 });
+		void UpdatePoints(const olc::vf2d mouse_dir = { 0, 0 }, const olc::vf2d mouse_pos = { 0, 0 }, const bool cut = false);
 
 		/**
 		 * \brief Adjusts the points to be stick length apart
