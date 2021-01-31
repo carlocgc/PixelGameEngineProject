@@ -46,7 +46,8 @@ public:
 	{
 		// Called once at the start, so create things here
 
-		CreateNet(10, 10, 50, 25, 25);
+		CreateNet(75, 10, 10, 25, 25, true);	
+		CreateNet(1620, 10, 10, 25, 25);
 
 		return true;
 	}
@@ -68,11 +69,11 @@ public:
 
 		// Create bodies
 		
-		//if (GetMouse(0).bPressed)
-		//{
-		//	const auto pos = GetWindowMouse();
-		//	CreateChain(pos.x, pos.y);
-		//}		
+		if (GetMouse(0).bPressed)
+		{
+			const auto pos = GetMousePos();
+			CreateChain(pos.x, pos.y);
+		}		
 
 		// Render
 
@@ -94,7 +95,7 @@ private:
 
 	olc::vi2d last_mouse_pos{ 0, 0 };
 
-	void CreateNet(const float start_x, const float start_y, const int32_t len_x, const int32_t len_y, const float point_dist)
+	void CreateNet(const float start_x, const float start_y, const int32_t len_x, const int32_t len_y, const float point_dist, bool draw_points = false)
 	{	
 		std::vector<VertletPoint*> all_points;
 		std::vector<VertletStick*> all_sticks;
@@ -143,7 +144,7 @@ private:
 		}
 
 		// create a body
-		VertletBody* body = new VertletBody(all_points, all_sticks);
+		VertletBody* body = new VertletBody(all_points, all_sticks, draw_points);
 		m_bodies.emplace_back(body);
 	}
 
@@ -200,7 +201,7 @@ private:
 		// render points
 		for (const auto& p : body->m_points)
 		{
-			if (!p->m_hidden)
+			if (!p->m_hidden && body->draw_points)
 			{
 				const auto colour = p->m_touched ? olc::RED : olc::WHITE;
 				const auto radius = p->m_touched ? body->m_pointradius * 3 : body->m_pointradius;
@@ -232,7 +233,7 @@ private:
 int main()
 {
 	Game demo;
-	if (demo.Construct(1280, 720, 1, 1))
+	if (demo.Construct(1920, 1080, 1, 1, false))
 		demo.Start();
 	return 0;
 }

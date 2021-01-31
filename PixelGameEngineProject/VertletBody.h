@@ -43,14 +43,17 @@ struct VertletStick
 class VertletBody
 {
 public:
-	VertletBody(std::vector<VertletPoint*>& points, std::vector<VertletStick*>& sticks) :
+	VertletBody(std::vector<VertletPoint*>& points, std::vector<VertletStick*>& sticks, bool _draw_points = false) :
 		m_points(points),
-		m_sticks(sticks)
+		m_sticks(sticks),
+		draw_points(_draw_points)
 	{}
 
 	virtual ~VertletBody();
 
+	const bool draw_points;	
 	const float m_pointradius = 5.f;
+
 	std::vector<VertletPoint*> m_points;
 	std::vector<VertletStick*> m_sticks;
 
