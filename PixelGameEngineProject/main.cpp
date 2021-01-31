@@ -47,8 +47,8 @@ public:
 	{
 		// Called once at the start, so create things here
 
-		CreateNet(m_bodies, 75, 10, 10, 25, 25, true);
-		CreateNet(m_bodies, 1620, 10, 10, 25, 25);
+		//CreateNet(m_bodies, 75, 10, 10, 25, 25, true);
+		CreateNet(m_bodies, 75, 10, 70, 20, 25);
 		
 		return true;
 	}
