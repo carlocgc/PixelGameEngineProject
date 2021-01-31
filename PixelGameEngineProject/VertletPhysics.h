@@ -1,7 +1,8 @@
 #pragma once
-#include <vector>
 
+#include <vector>
 #include "olcPixelGameEngine.h"
+
 namespace VertletPhysics
 {
 	struct VertletStick;
@@ -252,4 +253,78 @@ namespace VertletPhysics
 
 		return true;
 	}
+	
+	/* Vertlet sample scene */
+	class VertletScene : public olc::PixelGameEngine
+	{
+	public:
+		VertletScene()
+		{			
+			sAppName = "Vertlet Scene";
+		}
+
+		bool OnUserCreate() override
+		{
+			return true;
+		}
+
+		bool OnUserUpdate(float fElapsedTime) override
+		{
+			// Determine mouse move direction	
+			const olc::vf2d current_mouse_pos = GetWindowMouse();
+			const olc::vf2d mouse_direction = last_mouse_pos - current_mouse_pos;
+			olc::vf2d mouse_direction_norm{ 0, 0 };
+
+			if (mouse_direction.x != 0 || mouse_direction.y != 0)
+			{
+				mouse_direction_norm = mouse_direction.norm();
+			}
+
+			// store last pos for next update
+			last_mouse_pos = current_mouse_pos;
+
+			// check should cut
+			const bool should_cut = GetMouse(0).bHeld;
+
+			// create or destroy objects in scene
+			if (GetKey(olc::Q).bPressed)
+			{
+				DestroyBodies();
+			}
+			else if (GetKey(olc::R).bPressed)
+			{
+				const auto x = rand() % 1000;
+
+				CreateNet(m_bodies, x, 10, 80, 80, 4);
+			}
+
+			// Render scene
+			Clear(olc::VERY_DARK_CYAN);
+
+			for (auto& body : m_bodies)
+			{
+				body->Update(ScreenWidth(), ScreenHeight(), mouse_direction_norm, current_mouse_pos, should_cut);
+
+				body->Render(this);
+			}
+
+			return true;
+		}
+
+	private:
+
+		std::vector<VertletBody*> m_bodies;
+
+		olc::vi2d last_mouse_pos{ 0, 0 };
+
+		void DestroyBodies()
+		{
+			for (auto&& body : m_bodies)
+			{
+				delete body;
+			}
+
+			m_bodies.clear();
+		}
+	};
 }
