@@ -84,7 +84,7 @@ namespace VertletPhysics
 	{
 		UpdatePoints(mouse_dir, mouse_pos, cut_pressed);
 
-		for (size_t i = 0; i <= g_constrain_loops; ++i)
+		for (size_t i = 1; i <= g_constrain_loops; i++)
 		{
 			UpdateSticks();
 			ConstrainPoints(screen_width, screen_height);
