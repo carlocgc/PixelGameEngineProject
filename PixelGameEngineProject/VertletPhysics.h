@@ -295,10 +295,10 @@ namespace VertletPhysics
 			{
 				const auto x = rand() % 1000;
 
-				CreateNet(m_bodies, x, 10, 80, 80, 5);
+				//CreateNet(m_bodies, x, 10, 80, 80, 5);
 
 				// release mode only
-				//CreateNet(m_bodies, 10, 10, 250, 80, 5);
+				CreateNet(m_bodies, 10, 10, 250, 80, 5);
 			}
 
 			// Render scene
